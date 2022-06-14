@@ -1,8 +1,78 @@
+const { response } = require('express');
 const express = require('express');
 const app = express();
-const {menuResult, checkAccount, createAccount, loginAccount, createOrder, findOrders} = require('./modules/nedb')
+const {getMenu, checkAccount, createAccount, loginAccount, createOrder, findOrders, addToMenu, checkMenu,
+        removeProduct} = require('./modules/nedb')
 const PORT = 8000
 app.use(express.json())
+
+const apiKeys = [
+    'edVCa1E6zDZRztaq',
+    'KwOi5vm2TYNmi8Dd',
+    'zaCmZA74PLKCrD8Y',
+    'ngfeNG1iaq9Q2PJK',
+    '7BTxHCyHhzIME5TI'
+];
+
+function auth(request, response, next) {
+    const apiKey = request.headers['api-key'];
+
+    if (apiKey && apiKeys.includes(apiKey)) {
+        next();
+    } else {
+        const resObj = {
+            error: 'I find your lack of API-key disturbing. BE GONE!'
+        }
+
+        response.json(resObj);
+    }
+};
+
+app.post('/api/admin', auth, async (request, response) => {
+     const credentials = request.body;
+
+     if (credentials.hasOwnProperty('id') && credentials.hasOwnProperty('title') && credentials.hasOwnProperty('desc') && credentials.hasOwnProperty('price')) {
+            const result = await checkMenu(credentials);
+            if(result.length > 0) {
+                const resObj = {
+                    message: 'Den här produkten finns redan'
+                }
+
+                response.json(resObj);
+            } if (result.length === 0) {
+
+                const resObj = credentials;
+                addToMenu(resObj)
+    
+                response.json(resObj)
+            }
+
+        } else {
+            const resObj = {
+                error:'Fel, fel, feeel! Du MÅSTE ha med id, title, desc och price!'
+            } 
+
+            response.json(resObj);
+        }
+})
+
+app.delete('/api/admin/:id', auth, async (request, response) => {
+    const id = request.params.id;
+
+    const result = await removeProduct(id);
+    if(result === 0) {
+        const resObj = {
+            error: 'Det finns ingen produkt med detta ID.'
+        }
+        response.json(resObj)
+    } else {
+        const resObj = {
+            message: `Produkt med ID ${id} är borttagen.`
+        }
+        response.json(resObj)
+    }
+
+})
 
 
 
@@ -13,7 +83,7 @@ app.use(express.json())
 // UTFORMNING AV FRONTEND REQUEST {"username": "", "password": "", "cart": {[ {ITEM}, {ITEM} ]}
 
 app.post('/api/order', async (request, response)=> {
-    const credentials = request.body
+    const credentials = request.body;
     if (credentials.hasOwnProperty('cart')){
         const resObj = {}
         if (credentials.hasOwnProperty('username')) {
@@ -61,10 +131,13 @@ app.get('/api/order/:id', async (request, response)=> {
 })
 
 function checkIfDone(singleOrder) {
-    const rightNow = new Date().toLocaleString()
+    const rightNow = new Date().toLocaleTimeString()
     singleOrder.totalPrice = 0;
-    if (singleOrder.ETA > rightNow ) {
-     singleOrder.done = "done";
+
+    if (singleOrder.ETA < rightNow ) {
+     singleOrder.status = "Delivered";
+    } else {
+        singleOrder.status = "In progress";
     }
     const singleOrderCart = singleOrder.order;
      for (let i = 0; i < singleOrderCart.length; i++) {
@@ -77,7 +150,7 @@ function checkIfDone(singleOrder) {
 
 // /api/menu	GET	Returnerar en kaffemeny
 app.get('/api/menu', async (request, response)=> {
-    const menuResults = await menuResult();
+    const menuResults = await getMenu();
     const resObj = {menu: menuResults};
     response.json(resObj);
     })
@@ -93,7 +166,7 @@ app.post('/api/account/signup', async (request, response)=> {
     if (credentials.hasOwnProperty('email') && credentials.hasOwnProperty('username') && credentials.hasOwnProperty('password')) {
         const result = await checkAccount(credentials);
         if (result.length < 1) {
-            const result = createAccount(credentials)
+            const result = await createAccount(credentials)
             resObj.message = "success";
             resObj.account = result;
         } else {

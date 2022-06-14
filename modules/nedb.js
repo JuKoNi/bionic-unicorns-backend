@@ -1,12 +1,30 @@
 const nedb =  require('nedb-promise')
-const userDatabase = new nedb({filename: 'userdatabase.db', autoload:true})
-const orderDatabase = new nedb({filename: 'orderdatabase.db', autoload:true})
-const menuDatabase = new nedb({filename: 'menuedatabase.db', autoload:true})
+const userDatabase = new nedb({filename: 'userdatabase.db', autoload: true})
+const orderDatabase = new nedb({filename: 'orderdatabase.db', autoload: true})
+const menuDatabase = new nedb({filename: 'menuedatabase.db', autoload: true})
 
+function addToMenu(credentials) {
+    const result = menuDatabase.insert({ id: credentials.id, title: credentials.title, desc: credentials.desc, price: credentials.price });
+    return result;
+}
 
-function menuResult(){
-const result = menuDatabase.find({})
-return result
+function checkMenu(credentials) {
+    const result = menuDatabase.find({ $or: [{id: credentials.id}, {title: credentials.title} ]})
+    return result
+}
+
+function getMenu(){
+    const result = menuDatabase.find({});
+    return result
+}
+
+// function findProduct(credentials) {
+//     const result = menuDatabase.find({ id: credentials.id });
+//     return result;
+// }
+function removeProduct(id) {
+    const result = menuDatabase.remove({ id: Number(id) });
+    return result
 }
 
 function checkAccount(credentials){
@@ -36,10 +54,11 @@ function createOrder(credentials){
     const ETAnumber = Math.floor(Math.random() * 10)
     ETAminutes = new Date ( orderTimeTemp );
     ETAminutes.setMinutes ( orderTimeTemp.getMinutes() + ETAnumber );
-    const toLocaleETA =ETAminutes.toLocaleTimeString()
+    const toLocaleETA = ETAminutes.toLocaleTimeString()
 
     const result = orderDatabase.insert({username: credentials.username, order: credentials.cart, orderTime: orderTime, ETA: toLocaleETA })
     return result
 }
 
-module.exports = {menuResult, checkAccount, createAccount, loginAccount, createOrder, findOrders}
+module.exports = {getMenu, checkAccount, createAccount, loginAccount, createOrder, findOrders, addToMenu,
+                checkMenu, removeProduct}
