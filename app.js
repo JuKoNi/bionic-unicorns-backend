@@ -21,10 +21,10 @@ function auth(request, response, next) {
         next();
     } else {
         const resObj = {
-            error: 'I find your lack of API-key disturbing. BE GONE!'
+            error: 'Invalid API-key.'
         }
 
-        response.json(resObj);
+        response.status(400).json(resObj);
     }
 };
 
@@ -35,24 +35,24 @@ app.post('/api/admin', auth, async (request, response) => {
             const result = await checkMenu(credentials);
             if(result.length > 0) {
                 const resObj = {
-                    message: 'Den här produkten finns redan'
+                    error: 'This product already exists.'
                 }
 
-                response.json(resObj);
+                response.status(400).json(resObj);
             } if (result.length === 0) {
 
                 const resObj = credentials;
                 addToMenu(resObj)
     
-                response.json(resObj)
+                response.status(200).json(resObj)
             }
 
         } else {
             const resObj = {
-                error:'Fel, fel, feeel! Du MÅSTE ha med id, title, desc och price!'
+                error:'Error, please include id, title, desc and price.'
             } 
 
-            response.json(resObj);
+            response.status(400).json(resObj);
         }
 })
 
@@ -62,14 +62,14 @@ app.delete('/api/admin/:id', auth, async (request, response) => {
     const result = await removeProduct(id);
     if(result === 0) {
         const resObj = {
-            error: 'Det finns ingen produkt med detta ID.'
+            error: 'There is product no with this ID.'
         }
-        response.json(resObj)
+        response.status(400).json(resObj)
     } else {
         const resObj = {
-            message: `Produkt med ID ${id} är borttagen.`
+            message: `Product with ID ${id} has been removed.`
         }
-        response.json(resObj)
+        response.status(200).json(resObj)
     }
 
 })
