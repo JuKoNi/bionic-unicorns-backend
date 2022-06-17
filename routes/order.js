@@ -57,11 +57,13 @@ router.get('/:id', async (request, response)=> {
         response.json(findOrder);
 })
 
+
 function checkIfDone(singleOrder) {
-    const rightNow = new Date().toLocaleTimeString()
+    const timeStampNow = Date.now()
+
     singleOrder.totalPrice = 0;
 
-    if (singleOrder.ETA < rightNow ) {
+    if (singleOrder.etaTimeStamp < timeStampNow ) {
      singleOrder.status = "Delivered";
     } else {
         singleOrder.status = "In progress";

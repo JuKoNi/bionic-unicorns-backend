@@ -18,10 +18,6 @@ function getMenu(){
     return result
 }
 
-// function findProduct(credentials) {
-//     const result = menuDatabase.find({ id: credentials.id });
-//     return result;
-// }
 function removeProduct(id) {
     const result = menuDatabase.remove({ id: Number(id) });
     return result
@@ -41,6 +37,7 @@ function loginAccount(credentials){
     const result = userDatabase.find({$and: [{username: credentials.username}, {password: credentials.password}] })
     return result
 }
+
 function findOrders(credentials){
     const result = orderDatabase.find({username: credentials })
     return result
@@ -48,17 +45,22 @@ function findOrders(credentials){
 }
 
 
+
 function createOrder(credentials){
     const orderTime = new Date().toLocaleTimeString();
-    const orderTimeTemp = new Date()
-    const ETAnumber = Math.floor(Math.random() * 10)
+    const timeStamp = Date.now();
+    const orderTimeTemp = new Date();
+    const ETAnumber = Math.floor(Math.random() * 10) + 1;
     ETAminutes = new Date ( orderTimeTemp );
     ETAminutes.setMinutes ( orderTimeTemp.getMinutes() + ETAnumber );
-    const toLocaleETA = ETAminutes.toLocaleTimeString()
+    const toLocaleETA = ETAminutes.toLocaleTimeString();
+    const etaTimeStamp = Date.now() + (ETAnumber * 60000);
 
-    const result = orderDatabase.insert({username: credentials.username, order: credentials.cart, orderTime: orderTime, ETA: toLocaleETA })
+
+    const result = orderDatabase.insert({username: credentials.username, order: credentials.cart, orderTime: orderTime, ETA: toLocaleETA , timeStamp: timeStamp,
+                    etaTimeStamp: etaTimeStamp })
     return result
 }
 
-module.exports = {getMenu, checkAccount, createAccount, loginAccount, createOrder, findOrders, addToMenu,
-                checkMenu, removeProduct}
+module.exports = { getMenu, checkAccount, createAccount, loginAccount, createOrder, findOrders, addToMenu,
+                checkMenu, removeProduct }

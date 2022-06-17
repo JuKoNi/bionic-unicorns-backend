@@ -2,7 +2,7 @@ const Router = require('express');
 const router = Router();
 
 const { createAccount, loginAccount, checkAccount } = require('../modules/nedb')
-// /api/account/signup	POST	Skapar ett användarkonto
+
 
 //   UTFORMNING AV SIGNUP FRONTEND  {"email" : "", "username": "", "password": ""}
 router.post('/signup', async (request, response) => {
@@ -24,7 +24,6 @@ router.post('/signup', async (request, response) => {
 })
 
 
-// /api/account/login	POST	Logga in
 
 //   UTFORMNING AV LOGIN FRONTEND  {"username": "", "password": ""}
 
@@ -42,5 +41,7 @@ router.post('/login', async (request, response) => {
     }
     response.json(resObj);
 })
+
+
 
 module.exports = router;
